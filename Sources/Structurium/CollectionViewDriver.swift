@@ -9,51 +9,51 @@ import UIKit
 
 @resultBuilder
 public struct SectionDescriptionBuilder {
-    public static func buildBlock(_ components: [SectionDescription]...) -> [SectionDescription] {
+    public static func buildBlock(_ components: [any SectionDescription]...) -> [any SectionDescription] {
         components.flatMap { $0 }
     }
 
-    public static func buildExpression(_ expression: SectionDescription) -> [SectionDescription] {
+    public static func buildExpression(_ expression: any SectionDescription) -> [any SectionDescription] {
         [expression]
     }
 
-    public static func buildExpression(_ expression: [SectionDescription]) -> [SectionDescription] {
+    public static func buildExpression(_ expression: [any SectionDescription]) -> [any SectionDescription] {
         expression
     }
 
-    public static func buildOptional(_ component: [SectionDescription]?) -> [SectionDescription] {
+    public static func buildOptional(_ component: [any SectionDescription]?) -> [any SectionDescription] {
         component ?? []
     }
 
-    public static func buildEither(first component: [SectionDescription]) -> [SectionDescription] {
+    public static func buildEither(first component: [any SectionDescription]) -> [any SectionDescription] {
         component
     }
 
-    public static func buildEither(second component: [SectionDescription]) -> [SectionDescription] {
+    public static func buildEither(second component: [any SectionDescription]) -> [any SectionDescription] {
         component
     }
 
-    public static func buildArray(_ components: [[SectionDescription]]) -> [SectionDescription] {
+    public static func buildArray(_ components: [[any SectionDescription]]) -> [any SectionDescription] {
         components.flatMap { $0 }
     }
 
-    public static func buildLimitedAvailability(_ component: [SectionDescription]) -> [SectionDescription] {
+    public static func buildLimitedAvailability(_ component: [any SectionDescription]) -> [any SectionDescription] {
         component
     }
 }
 
 public class CollectionViewDriver: NSObject {
     struct DynamicDescriptor: SectionsDescriptor {
-        var sections: [SectionDescription] { builder() }
-        let builder: () -> [SectionDescription]
+        var sections: [any SectionDescription] { builder() }
+        let builder: () -> [any SectionDescription]
 
-        init(@SectionDescriptionBuilder builder: @escaping () -> [SectionDescription]) {
+        init(@SectionDescriptionBuilder builder: @escaping () -> [any SectionDescription]) {
             self.builder = builder
         }
     }
 
     private let descriptor: SectionsDescriptor
-    private var sectionsDescriptionsCache: [SectionDescription] = []
+    private var sectionsDescriptionsCache: [any SectionDescription] = []
 
     private var registeredCells: [String] = []
     private var registeredViews: [String] = []
@@ -66,7 +66,7 @@ public class CollectionViewDriver: NSObject {
         self.updateCache()
     }
 
-    public convenience init(@SectionDescriptionBuilder builder: @escaping () -> [SectionDescription]) {
+    public convenience init(@SectionDescriptionBuilder builder: @escaping () -> [any SectionDescription]) {
         self.init(descriptor: DynamicDescriptor(builder: builder))
     }
 
@@ -153,25 +153,25 @@ extension CollectionViewDriver: UICollectionViewDataSource {
     public func numberOfSections(in collectionView: UICollectionView) -> Int { sectionsDescriptionsCache.count }
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        sectionsDescriptionsCache[section].contentBinder.numberOfItems()
+        (sectionsDescriptionsCache[section].contentBinder as any SectionContentBinder).numberOfItems()
     }
 }
 
 extension CollectionViewDriver: UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        sectionsDescriptionsCache[indexPath.section].contentBinder.willDisplayCell(cell, indexPath)
+        (sectionsDescriptionsCache[indexPath.section].contentBinder as any SectionContentBinder).willDisplayCell(cell, at: indexPath)
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         willDisplaySupplementaryView view: UICollectionReusableView,
                         forElementKind elementKind: String, at indexPath: IndexPath) {
         if elementKind == UICollectionView.elementKindSectionHeader {
-            sectionsDescriptionsCache[indexPath.section].headerContentBinder?.willDisplayHeader(view, indexPath)
+            (sectionsDescriptionsCache[indexPath.section].headerContentBinder as (any HeaderContentBinder)?)?.willDisplayHeader(view, at: indexPath)
         }
     }
 
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        sectionsDescriptionsCache[indexPath.section].contentBinder.didSelectItemAt?(indexPath)
+        (sectionsDescriptionsCache[indexPath.section].contentBinder as any SectionContentBinder).didSelectItem(at: indexPath)
     }
 }
 

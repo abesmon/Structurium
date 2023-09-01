@@ -8,7 +8,16 @@
 import UIKit
 
 public protocol SectionContentBinder {
-    var numberOfItems: () -> Int { get }
-    var willDisplayCell: (_ cell: UICollectionViewCell, _ indexPath: IndexPath) -> Void { get }
-    var didSelectItemAt: ((_ indexPath: IndexPath) -> Void)? { get }
+    associatedtype CellType: UICollectionViewCell
+
+    func numberOfItems() -> Int
+    func willDisplayCell(_ cell: CellType, at indexPath: IndexPath)
+    func didSelectItem(at indexPath: IndexPath)
+}
+
+internal extension SectionContentBinder {
+    func willDisplayCell(_ cell: UICollectionViewCell, at indexPath: IndexPath) {
+        guard let safeCell = cell as? CellType else { return }
+        willDisplayCell(safeCell, at: indexPath)
+    }
 }

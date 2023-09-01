@@ -8,5 +8,14 @@
 import UIKit
 
 public protocol HeaderContentBinder {
-    var willDisplayHeader: ((_ view: UICollectionReusableView, _ indexPath: IndexPath) -> Void) { get }
+    associatedtype HeaderType: UICollectionReusableView
+
+    func willDisplayHeader(_ view: HeaderType, at indexPath: IndexPath)
+}
+
+extension HeaderContentBinder {
+    func willDisplayHeader(_ view: UICollectionReusableView, at indexPath: IndexPath) {
+        guard let safeView = view as? HeaderType else { return }
+        willDisplayHeader(safeView, at: indexPath)
+    }
 }

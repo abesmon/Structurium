@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Array: SectionsDescriptor where Element == SectionDescription {
-    public var sections: [SectionDescription] { self }
-    public func updateSections() -> [SectionDescription] { self }
+extension Array: SectionsDescriptor where Element == any SectionDescription {
+    public var sections: [any SectionDescription] { self }
+    public func updateSections() -> [any SectionDescription] { self }
 }

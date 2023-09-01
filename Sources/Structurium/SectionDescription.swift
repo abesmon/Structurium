@@ -8,13 +8,18 @@
 import UIKit
 
 public protocol SectionDescription {
-    var headerCell: (AnyClass, String)? { get }
+    associatedtype HeaderCell: UICollectionReusableView
+    associatedtype CellClass: UICollectionViewCell
+    associatedtype SectionContentBinderType: SectionContentBinder where SectionContentBinderType.CellType == CellClass
+    associatedtype HeaderContentBinderType: HeaderContentBinder where HeaderContentBinderType.HeaderType == HeaderCell
+
+    var headerCell: (HeaderCell.Type, String)? { get }
     var referenceSizeForHeader: ((UICollectionView) -> CGSize)? { get }
-    var cell: (AnyClass, String) { get }
+    var cell: (CellClass.Type, String) { get }
     var cellSize: (UICollectionView, IndexPath) -> CGSize { get }
     var inset: () -> UIEdgeInsets { get }
     var minSpacings: (line: CGFloat, item: CGFloat) { get }
 
-    var contentBinder: SectionContentBinder { get }
-    var headerContentBinder: HeaderContentBinder? { get }
+    var contentBinder: SectionContentBinderType { get }
+    var headerContentBinder: HeaderContentBinderType? { get }
 }

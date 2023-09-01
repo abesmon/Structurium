@@ -7,10 +7,14 @@
 
 import UIKit
 
-public struct BasicHeaderContentBinder: HeaderContentBinder {
-    public let willDisplayHeader: ((_ view: UICollectionReusableView, _ indexPath: IndexPath) -> Void)
+public struct BasicHeaderContentBinder<HeaderType: UICollectionReusableView>: HeaderContentBinder {
+    let _willDisplayHeader: ((_ view: HeaderType, _ indexPath: IndexPath) -> Void)
 
-    public init(willDisplayHeader: @escaping ((_ view: UICollectionReusableView, _ indexPath: IndexPath) -> Void)) {
-        self.willDisplayHeader = willDisplayHeader
+    public init(willDisplayHeader: @escaping ((_ view: HeaderType, _ indexPath: IndexPath) -> Void)) {
+        self._willDisplayHeader = willDisplayHeader
+    }
+
+    public func willDisplayHeader(_ view: HeaderType, at indexPath: IndexPath) {
+        _willDisplayHeader(view, indexPath)
     }
 }

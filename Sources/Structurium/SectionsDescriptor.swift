@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol SectionsDescriptor {
-    var sections: [SectionDescription] { get }
+    var sections: [any SectionDescription] { get }
 }

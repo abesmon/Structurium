@@ -2,6 +2,8 @@ import XCTest
 import UIKit
 @testable import Structurium
 
+class TestCellType: UICollectionViewCell {}
+
 final class StructuriumTests: XCTestCase {
     func testCreateDriver() throws {
         let driver = CollectionViewDriver(descriptor: [])
@@ -14,13 +16,26 @@ final class StructuriumTests: XCTestCase {
 
         let driver = CollectionViewDriver {
             BasicSectionDescription(
+                cell: TestCellType.self,
+                cellId: "cell",
+                cellSize: { _, _ in .zero },
+                inset: .zero,
+                minSpacings: (0, 0),
+                contentBinder: BasicSectionContentBinder(
+                    numberOfItems: { 1 }(),
+                    willDisplayCell: { cell, _ in print("will display \(cell)") },
+                    didSelectItemAt: { _ in print("did select") }
+                )
+            )
+
+            BasicSectionDescription(
                 cell: UICollectionViewCell.self,
                 cellId: "cell",
                 cellSize: { _, _ in .zero },
                 inset: .zero,
                 minSpacings: (0, 0),
                 contentBinder: BasicSectionContentBinder(
-                    numberOfItems: { 1 },
+                    numberOfItems: 1,
                     willDisplayCell: { _, _ in print("will display") },
                     didSelectItemAt: { _ in print("did select") }
                 )
@@ -34,7 +49,7 @@ final class StructuriumTests: XCTestCase {
                     cellSize: { _, _ in .zero },
                     inset: .zero,
                     contentBinder: BasicSectionContentBinder(
-                        numberOfItems: { 1 },
+                        numberOfItems: { 1 }(),
                         willDisplayCell: { _, _ in print("will display") },
                         didSelectItemAt: { _ in print("did select") }
                     )
@@ -53,7 +68,7 @@ final class StructuriumTests: XCTestCase {
                     inset: .zero,
                     minSpacings: (10, 10),
                     contentBinder: BasicSectionContentBinder(
-                        numberOfItems: { 100 },
+                        numberOfItems: 100,
                         willDisplayCell: { _, _ in print("will display") },
                         didSelectItemAt: { _ in print("did select") }
                     ),
@@ -68,7 +83,7 @@ final class StructuriumTests: XCTestCase {
                     inset: .zero,
                     minSpacings: (0, 0),
                     contentBinder: BasicSectionContentBinder(
-                        numberOfItems: { 1 },
+                        numberOfItems: { 1 }(),
                         willDisplayCell: { _, _ in print("will display") },
                         didSelectItemAt: { _ in print("did select") }
                     )
@@ -81,7 +96,7 @@ final class StructuriumTests: XCTestCase {
                     cellSize: { _, _ in .zero },
                     inset: .zero,
                     contentBinder: BasicSectionContentBinder(
-                        numberOfItems: { 1 },
+                        numberOfItems: { 1 }(),
                         willDisplayCell: { _, _ in print("will display") },
                         didSelectItemAt: { _ in print("did select") }
                     )
@@ -99,7 +114,7 @@ final class StructuriumTests: XCTestCase {
                     inset: .zero,
                     minSpacings: (10, 10),
                     contentBinder: BasicSectionContentBinder(
-                        numberOfItems: { 100 },
+                        numberOfItems: { 100 }(),
                         willDisplayCell: { _, _ in print("will display") },
                         didSelectItemAt: { _ in print("did select") }
                     ),

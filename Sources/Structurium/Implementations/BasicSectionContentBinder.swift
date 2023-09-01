@@ -7,33 +7,23 @@
 
 import UIKit
 
-public struct BasicSectionContentBinder: SectionContentBinder {
-    public let numberOfItems: () -> Int
-    public let willDisplayCell: (_ cell: UICollectionViewCell, _ indexPath: IndexPath) -> Void
-    public let didSelectItemAt: ((_ indexPath: IndexPath) -> Void)?
+public struct BasicSectionContentBinder<CellType: UICollectionViewCell>: SectionContentBinder {
+    let _numberOfItems: () -> Int
+    let _willDisplayCell: (_ cell: CellType, _ indexPath: IndexPath) -> Void
+    let _didSelectItemAt: ((_ indexPath: IndexPath) -> Void)?
 
     public init(
         numberOfItems: @escaping @autoclosure () -> Int,
-        willDisplayCell: @escaping (_: UICollectionViewCell, _: IndexPath) -> Void = { _, _ in },
+        willDisplayCell: @escaping (_: CellType, _: IndexPath) -> Void = { _, _ in },
         didSelectItemAt: ((_: IndexPath) -> Void)? = nil
     ) {
-        self.numberOfItems = numberOfItems
-        self.willDisplayCell = willDisplayCell
-        self.didSelectItemAt = didSelectItemAt
+        self._numberOfItems = numberOfItems
+        self._willDisplayCell = willDisplayCell
+        self._didSelectItemAt = didSelectItemAt
     }
 
-    public init(
-        numberOfItems: @escaping () -> Int,
-        willDisplayCell: @escaping (_: UICollectionViewCell, _: IndexPath) -> Void = { _, _ in },
-        didSelectItemAt: ((_: IndexPath) -> Void)? = nil
-    ) {
-        self.numberOfItems = numberOfItems
-        self.willDisplayCell = willDisplayCell
-        self.didSelectItemAt = didSelectItemAt
-    }
-
-    public static func singleSimple(
-        willDisplayCell: @escaping (_: UICollectionViewCell, _: IndexPath) -> Void = { _, _ in },
+    public static func single(
+        willDisplayCell: @escaping (_: CellType, _: IndexPath) -> Void = { _, _ in },
         didSelectItemAt: ((_: IndexPath) -> Void)? = nil
     ) -> BasicSectionContentBinder {
         .init(
@@ -42,4 +32,8 @@ public struct BasicSectionContentBinder: SectionContentBinder {
             didSelectItemAt: didSelectItemAt
         )
     }
+
+    public func numberOfItems() -> Int { _numberOfItems() }
+    public func willDisplayCell(_ cell: CellType, at indexPath: IndexPath) { _willDisplayCell(cell, indexPath) }
+    public func didSelectItem(at indexPath: IndexPath) { _didSelectItemAt?(indexPath) }
 }

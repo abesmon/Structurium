@@ -7,30 +7,34 @@
 
 import UIKit
 
-public struct BasicSectionDescription: SectionDescription {
-    public let headerCell: (AnyClass, String)?
+public struct BasicSectionDescription<T, U, SectionContentBinderType, HeaderContentBinderType>: SectionDescription
+where T: UICollectionViewCell, U: UICollectionReusableView,
+      SectionContentBinderType: SectionContentBinder, SectionContentBinderType.CellType == T,
+      HeaderContentBinderType: HeaderContentBinder, HeaderContentBinderType.HeaderType == U
+{
+    public let headerCell: (U.Type, String)?
     public let referenceSizeForHeader: ((UICollectionView) -> CGSize)?
-    public let cell: (AnyClass, String)
+    public let cell: (T.Type, String)
     public let cellSize: (UICollectionView, IndexPath) -> CGSize
     public let inset: () -> UIEdgeInsets
     public let minSpacings: (line: CGFloat, item: CGFloat)
 
-    public let contentBinder: SectionContentBinder
-    public let headerContentBinder: HeaderContentBinder?
+    public let contentBinder: SectionContentBinderType
+    public let headerContentBinder: HeaderContentBinderType?
 
 
     // MARK: - with headers
-    public init<T: UICollectionReusableView, U: UICollectionViewCell>(
-        headerCell: T.Type = T.self,
-        headerCellId: String = String(describing: T.self),
+    public init(
+        headerCell: U.Type = U.self,
+        headerCellId: String = String(describing: U.self),
         referenceSizeForHeader: (@escaping (UICollectionView) -> CGSize),
-        cell: U.Type = U.self,
-        cellId: String = String(describing: U.self),
+        cell: T.Type = T.self,
+        cellId: String = String(describing: T.self),
         cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @autoclosure @escaping () -> UIEdgeInsets,
+        inset: @escaping @autoclosure () -> UIEdgeInsets,
         minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder,
-        headerContentBinder: HeaderContentBinder
+        contentBinder: SectionContentBinderType,
+        headerContentBinder: HeaderContentBinderType
     ) {
         self.init(
             headerCellOpt: (headerCell, headerCellId),
@@ -44,14 +48,41 @@ public struct BasicSectionDescription: SectionDescription {
         )
     }
 
-    // MARK: without headers
-    public init<T: UICollectionViewCell>(
+    // MARK: - optional headers
+    private init(
+        headerCellOpt: (U.Type, String)? = (U.self, String(describing: U.self)),
+        referenceSizeForHeader: ((UICollectionView) -> CGSize)?,
+        cell: (T.Type, String) = (T.self, String(describing: T.self)),
+        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
+        inset: @escaping () -> UIEdgeInsets,
+        minSpacings: (line: CGFloat, item: CGFloat),
+        contentBinder: SectionContentBinderType,
+        headerContentBinder: HeaderContentBinderType?
+    ) {
+        self.headerCell = headerCellOpt
+        self.referenceSizeForHeader = referenceSizeForHeader
+        self.cell = cell
+        self.cellSize = cellSize
+        self.inset = inset
+        self.minSpacings = minSpacings
+        self.contentBinder = contentBinder
+        self.headerContentBinder = headerContentBinder
+    }
+}
+
+// MARK: without headers
+public struct EmptyHeaderConentBinder: HeaderContentBinder {
+    public func willDisplayHeader(_ view: UICollectionReusableView, at indexPath: IndexPath) {}
+}
+
+extension BasicSectionDescription where U == UICollectionReusableView, HeaderContentBinderType == EmptyHeaderConentBinder {
+    public init(
         cell: T.Type = T.self,
         cellId: String = String(describing: T.self),
         cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @autoclosure @escaping () -> UIEdgeInsets,
+        inset: @escaping @autoclosure () -> UIEdgeInsets,
         minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder
+        contentBinder: SectionContentBinderType
     ) {
         self.init(
             headerCellOpt: nil,
@@ -65,13 +96,13 @@ public struct BasicSectionDescription: SectionDescription {
         )
     }
 
-    // MARK: - one cell only
-    public init<T: UICollectionViewCell>(
+    /// For scenarios like one celled horizontal scroll
+    public init(
         oneCell: T.Type = T.self,
         cellId: String = String(describing: T.self),
         cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @autoclosure @escaping () -> UIEdgeInsets,
-        contentBinder: SectionContentBinder
+        inset: @escaping @autoclosure () -> UIEdgeInsets,
+        contentBinder: SectionContentBinderType
     ) {
         self.init(
             headerCellOpt: nil,
@@ -83,65 +114,5 @@ public struct BasicSectionDescription: SectionDescription {
             contentBinder: contentBinder,
             headerContentBinder: nil
         )
-    }
-
-    public init<T: UICollectionViewCell>(
-        oneCell: T.Type = T.self,
-        cellId: String = String(describing: T.self),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @escaping () -> UIEdgeInsets,
-        contentBinder: SectionContentBinder
-    ) {
-        self.init(
-            headerCellOpt: nil,
-            referenceSizeForHeader: nil,
-            cell: (oneCell, cellId),
-            cellSize: cellSize,
-            inset: inset,
-            minSpacings: (0, 0),
-            contentBinder: contentBinder,
-            headerContentBinder: nil
-        )
-    }
-
-    // MARK: - optional headers
-    private init(
-        headerCellOpt: (AnyClass, String)?,
-        referenceSizeForHeader: ((UICollectionView) -> CGSize)?,
-        cell: (AnyClass, String),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @escaping () -> UIEdgeInsets,
-        minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder,
-        headerContentBinder: HeaderContentBinder?
-    ) {
-        self.headerCell = headerCellOpt
-        self.referenceSizeForHeader = referenceSizeForHeader
-        self.cell = cell
-        self.cellSize = cellSize
-        self.inset = inset
-        self.minSpacings = minSpacings
-        self.contentBinder = contentBinder
-        self.headerContentBinder = headerContentBinder
-    }
-
-    private init<T: UICollectionReusableView, U: UICollectionViewCell>(
-        headerCellOpt: (T.Type, String) = (T.self, String(describing: T.self)),
-        referenceSizeForHeader: ((UICollectionView) -> CGSize)?,
-        cell: (U.Type, String) = (U.self, String(describing: T.self)),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @escaping () -> UIEdgeInsets,
-        minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder,
-        headerContentBinder: HeaderContentBinder?
-    ) {
-        self.headerCell = headerCellOpt
-        self.referenceSizeForHeader = referenceSizeForHeader
-        self.cell = cell
-        self.cellSize = cellSize
-        self.inset = inset
-        self.minSpacings = minSpacings
-        self.contentBinder = contentBinder
-        self.headerContentBinder = headerContentBinder
     }
 }
