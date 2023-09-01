@@ -7,16 +7,67 @@
 
 import UIKit
 
+@resultBuilder
+public struct SectionDescriptionBuilder {
+    public static func buildBlock(_ components: [SectionDescription]...) -> [SectionDescription] {
+        components.flatMap { $0 }
+    }
+
+    public static func buildExpression(_ expression: SectionDescription) -> [SectionDescription] {
+        [expression]
+    }
+
+    public static func buildExpression(_ expression: [SectionDescription]) -> [SectionDescription] {
+        expression
+    }
+
+    public static func buildOptional(_ component: [SectionDescription]?) -> [SectionDescription] {
+        component ?? []
+    }
+
+    public static func buildEither(first component: [SectionDescription]) -> [SectionDescription] {
+        component
+    }
+
+    public static func buildEither(second component: [SectionDescription]) -> [SectionDescription] {
+        component
+    }
+
+    public static func buildArray(_ components: [[SectionDescription]]) -> [SectionDescription] {
+        components.flatMap { $0 }
+    }
+
+    public static func buildLimitedAvailability(_ component: [SectionDescription]) -> [SectionDescription] {
+        component
+    }
+}
+
 public class CollectionViewDriver: NSObject {
-    private let sectionDescriptions: [SectionDescription]
+    struct DynamicDescriptor: SectionsDescriptor {
+        var sections: [SectionDescription] { builder() }
+        let builder: () -> [SectionDescription]
+
+        init(@SectionDescriptionBuilder builder: @escaping () -> [SectionDescription]) {
+            self.builder = builder
+        }
+    }
+
+    private let descriptor: SectionsDescriptor
+    private var sectionsDescriptionsCache: [SectionDescription] = []
 
     private var registeredCells: [String] = []
     private var registeredViews: [String] = []
     private weak var currentCollectionView: UICollectionView?
     public weak var scrollViewNextDelegate: UIScrollViewDelegate?
 
-    public init(sectionDescriptions: [SectionDescription]) {
-        self.sectionDescriptions = sectionDescriptions
+    public init(descriptor: SectionsDescriptor) {
+        self.descriptor = descriptor
+        super.init()
+        self.updateCache()
+    }
+
+    public convenience init(@SectionDescriptionBuilder builder: @escaping () -> [SectionDescription]) {
+        self.init(descriptor: DynamicDescriptor(builder: builder))
     }
 
     deinit {
@@ -29,7 +80,39 @@ public class CollectionViewDriver: NSObject {
         collectionView.delegate = self
         collectionView.dataSource = self
 
-        for section in sectionDescriptions {
+        reloadSections()
+    }
+
+    public func unbindCurrent() {
+        defer {
+            registeredCells = []
+            registeredViews = []
+        }
+
+        guard let currentCollectionView = currentCollectionView else { return }
+
+        for registeredCell in registeredCells {
+            currentCollectionView.register(nil as AnyClass?, forCellWithReuseIdentifier: registeredCell)
+        }
+        for registeredView in registeredViews {
+            currentCollectionView.register(nil as AnyClass?,
+                                           forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                           withReuseIdentifier: registeredView)
+        }
+    }
+
+    public func reloadSections() {
+        guard let collectionView = currentCollectionView else { return }
+        reloadSections(collectionView: collectionView)
+    }
+
+    private func updateCache() {
+        sectionsDescriptionsCache = descriptor.sections
+    }
+
+    private func reloadSections(collectionView: UICollectionView) {
+        updateCache()
+        for section in sectionsDescriptionsCache {
             if let header = section.headerCell {
                 collectionView.register(header.0,
                                         forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -41,24 +124,15 @@ public class CollectionViewDriver: NSObject {
         }
     }
 
-    public func unbindCurrent() {
-        defer {
-            registeredCells = []
-            registeredViews = []
-        }
-
-        guard let currentCollectionView = currentCollectionView else {
-            return
-        }
-
-        for registeredCell in registeredCells {
-            currentCollectionView.register(nil as AnyClass?, forCellWithReuseIdentifier: registeredCell)
-        }
-        for registeredView in registeredViews {
-            currentCollectionView.register(nil as AnyClass?,
-                                           forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                           withReuseIdentifier: registeredView)
-        }
+    public override var debugDescription: String {
+        """
+        descriptor: \(descriptor)
+        cache: \(sectionsDescriptionsCache)
+        registeredCells: \(registeredCells)
+        registeredViews: \(registeredViews)
+        currentCollectionView: \(String(describing: currentCollectionView))
+        nextDelegate: \(String(describing: scrollViewNextDelegate))
+        """
     }
 }
 
@@ -66,38 +140,38 @@ extension CollectionViewDriver: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-        let sectionDescription = sectionDescriptions[indexPath.section]
+        let sectionDescription = sectionsDescriptionsCache[indexPath.section]
         guard let headerCell = sectionDescription.headerCell else { return UICollectionReusableView() }
         return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: headerCell.1, for: indexPath)
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let sectionDescription = sectionDescriptions[indexPath.section]
+        let sectionDescription = sectionsDescriptionsCache[indexPath.section]
         return collectionView.dequeueReusableCell(withReuseIdentifier: sectionDescription.cell.1, for: indexPath)
     }
 
-    public func numberOfSections(in collectionView: UICollectionView) -> Int { sectionDescriptions.count }
+    public func numberOfSections(in collectionView: UICollectionView) -> Int { sectionsDescriptionsCache.count }
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        sectionDescriptions[section].contentBinder.numberOfItems()
+        sectionsDescriptionsCache[section].contentBinder.numberOfItems()
     }
 }
 
 extension CollectionViewDriver: UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        sectionDescriptions[indexPath.section].contentBinder.willDisplayCell(cell, indexPath)
+        sectionsDescriptionsCache[indexPath.section].contentBinder.willDisplayCell(cell, indexPath)
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         willDisplaySupplementaryView view: UICollectionReusableView,
                         forElementKind elementKind: String, at indexPath: IndexPath) {
         if elementKind == UICollectionView.elementKindSectionHeader {
-            sectionDescriptions[indexPath.section].headerContentBinder?.willDisplayHeader(view, indexPath)
+            sectionsDescriptionsCache[indexPath.section].headerContentBinder?.willDisplayHeader(view, indexPath)
         }
     }
 
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        sectionDescriptions[indexPath.section].contentBinder.didSelectItemAt?(indexPath)
+        sectionsDescriptionsCache[indexPath.section].contentBinder.didSelectItemAt?(indexPath)
     }
 }
 
@@ -105,31 +179,31 @@ extension CollectionViewDriver: UICollectionViewDelegateFlowLayout {
     public func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        sectionDescriptions[indexPath.section].cellSize(collectionView, indexPath)
+        sectionsDescriptionsCache[indexPath.section].cellSize(collectionView, indexPath)
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         insetForSectionAt section: Int) -> UIEdgeInsets {
-        sectionDescriptions[section].inset()
+        sectionsDescriptionsCache[section].inset()
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        sectionDescriptions[section].minSpacings.line
+        sectionsDescriptionsCache[section].minSpacings.line
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        sectionDescriptions[section].minSpacings.item
+        sectionsDescriptionsCache[section].minSpacings.item
     }
 
     public func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
-        sectionDescriptions[section].referenceSizeForHeader?(collectionView) ?? .zero
+        sectionsDescriptionsCache[section].referenceSizeForHeader?(collectionView) ?? .zero
     }
 }
 

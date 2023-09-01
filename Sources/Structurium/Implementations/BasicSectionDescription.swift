@@ -20,32 +20,12 @@ public struct BasicSectionDescription: SectionDescription {
 
 
     // MARK: - with headers
-    private init(
-        headerCell: (AnyClass, String),
-        referenceSizeForHeader: (@escaping (UICollectionView) -> CGSize),
-        cell: (AnyClass, String),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @autoclosure @escaping () -> UIEdgeInsets,
-        minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder,
-        headerContentBinder: HeaderContentBinder
-    ) {
-        self.init(
-            headerCellOpt: headerCell,
-            referenceSizeForHeader: referenceSizeForHeader,
-            cell: cell,
-            cellSize: cellSize,
-            inset: inset,
-            minSpacings: minSpacings,
-            contentBinder: contentBinder,
-            headerContentBinder: headerContentBinder
-        )
-    }
-
     public init<T: UICollectionReusableView, U: UICollectionViewCell>(
-        headerCell: (T.Type, String) = (T.self, String(describing: T.self)),
+        headerCell: T.Type = T.self,
+        headerCellId: String = String(describing: T.self),
         referenceSizeForHeader: (@escaping (UICollectionView) -> CGSize),
-        cell: (U.Type, String) = (U.self, String(describing: T.self)),
+        cell: U.Type = U.self,
+        cellId: String = String(describing: U.self),
         cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
         inset: @autoclosure @escaping () -> UIEdgeInsets,
         minSpacings: (line: CGFloat, item: CGFloat),
@@ -53,9 +33,9 @@ public struct BasicSectionDescription: SectionDescription {
         headerContentBinder: HeaderContentBinder
     ) {
         self.init(
-            headerCellOpt: headerCell,
+            headerCellOpt: (headerCell, headerCellId),
             referenceSizeForHeader: referenceSizeForHeader,
-            cell: cell,
+            cell: (cell, cellId),
             cellSize: cellSize,
             inset: inset,
             minSpacings: minSpacings,
@@ -65,27 +45,9 @@ public struct BasicSectionDescription: SectionDescription {
     }
 
     // MARK: without headers
-    private init(
-        cell: (AnyClass, String),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
-        inset: @autoclosure @escaping () -> UIEdgeInsets,
-        minSpacings: (line: CGFloat, item: CGFloat),
-        contentBinder: SectionContentBinder
-    ) {
-        self.init(
-            headerCellOpt: nil,
-            referenceSizeForHeader: nil,
-            cell: cell,
-            cellSize: cellSize,
-            inset: inset,
-            minSpacings: minSpacings,
-            contentBinder: contentBinder,
-            headerContentBinder: nil
-        )
-    }
-
     public init<T: UICollectionViewCell>(
-        cell: (T.Type, String) = (T.self, String(describing: T.self)),
+        cell: T.Type = T.self,
+        cellId: String = String(describing: T.self),
         cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
         inset: @autoclosure @escaping () -> UIEdgeInsets,
         minSpacings: (line: CGFloat, item: CGFloat),
@@ -94,7 +56,7 @@ public struct BasicSectionDescription: SectionDescription {
         self.init(
             headerCellOpt: nil,
             referenceSizeForHeader: nil,
-            cell: cell,
+            cell: (cell, cellId),
             cellSize: cellSize,
             inset: inset,
             minSpacings: minSpacings,
