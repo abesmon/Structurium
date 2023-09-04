@@ -46,7 +46,7 @@ final class StructuriumTests: XCTestCase {
                 BasicSectionDescription(
                     oneCell: UICollectionViewCell.self,
                     cellId: "cell",
-                    cellSize: { _, _ in .zero },
+                    cellSize: { _ in .zero },
                     inset: .zero,
                     contentBinder: BasicSectionContentBinder(
                         numberOfItems: { 1 }(),
@@ -93,7 +93,7 @@ final class StructuriumTests: XCTestCase {
             if Date() > Date(timeIntervalSince1970: 100) {
                 BasicSectionDescription(
                     oneCell: UICollectionViewCell.self,
-                    cellSize: { _, _ in .zero },
+                    cellSize: { _ in .zero },
                     inset: .zero,
                     contentBinder: BasicSectionContentBinder(
                         numberOfItems: { 1 }(),

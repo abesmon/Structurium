@@ -100,7 +100,7 @@ extension BasicSectionDescription where U == UICollectionReusableView, HeaderCon
     public init(
         oneCell: T.Type = T.self,
         cellId: String = String(describing: T.self),
-        cellSize: @escaping (UICollectionView, IndexPath) -> CGSize,
+        cellSize: @escaping (UICollectionView) -> CGSize,
         inset: @escaping @autoclosure () -> UIEdgeInsets,
         contentBinder: SectionContentBinderType
     ) {
@@ -108,7 +108,7 @@ extension BasicSectionDescription where U == UICollectionReusableView, HeaderCon
             headerCellOpt: nil,
             referenceSizeForHeader: nil,
             cell: (oneCell, cellId),
-            cellSize: cellSize,
+            cellSize: { collection, _ in cellSize(collection) },
             inset: inset,
             minSpacings: (0, 0),
             contentBinder: contentBinder,

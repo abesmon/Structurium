@@ -23,13 +23,13 @@ public struct BasicSectionContentBinder<CellType: UICollectionViewCell>: Section
     }
 
     public static func single(
-        willDisplayCell: @escaping (_: CellType, _: IndexPath) -> Void = { _, _ in },
-        didSelectItemAt: ((_: IndexPath) -> Void)? = nil
+        willDisplayCell: @escaping (_: CellType) -> Void = { _ in },
+        didSelectItem: (() -> Void)? = nil
     ) -> BasicSectionContentBinder {
         .init(
             numberOfItems: 1,
-            willDisplayCell: willDisplayCell,
-            didSelectItemAt: didSelectItemAt
+            willDisplayCell: { cell, _ in willDisplayCell(cell) },
+            didSelectItemAt: { _ in didSelectItem?() }
         )
     }
 
