@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol TypicalCell {
+public protocol TypicalCell {
     associatedtype ContentType
     associatedtype Delegate
 
@@ -15,7 +15,7 @@ protocol TypicalCell {
     func set(delegate: Delegate)
 }
 
-extension TypicalCell {
+public extension TypicalCell {
     func set(anyDelegate: Any) {
         guard let delegate = anyDelegate as? Delegate else { return }
         set(delegate: delegate)

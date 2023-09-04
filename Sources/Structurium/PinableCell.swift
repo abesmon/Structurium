@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol PinableCell: AnyObject {
+public protocol PinableCell: AnyObject {
     func setPinned(_ isPinned: Bool)
 }

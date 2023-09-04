@@ -7,10 +7,10 @@
 
 import Foundation
 
-extension TypicalCell where Delegate == Void {
+public extension TypicalCell where Delegate == Void {
     func set(delegate: Delegate) {}
 }
 
-extension TypicalCell where ContentType == Void {
+public extension TypicalCell where ContentType == Void {
     func set(content: ContentType) {}
 }
