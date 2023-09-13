@@ -1,5 +1,5 @@
 //
-//  TypicalCell.swift
+//  TypicalView.swift
 //  HomeChannel
 //
 //  Created by Алексей Лысенко on 24.11.2022.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol TypicalCell {
+public protocol TypicalView {
     associatedtype ContentType
     associatedtype Delegate
 
@@ -15,7 +15,7 @@ public protocol TypicalCell {
     func set(delegate: Delegate)
 }
 
-public extension TypicalCell {
+public extension TypicalView {
     func set(anyDelegate: Any) {
         guard let delegate = anyDelegate as? Delegate else { return }
         set(delegate: delegate)

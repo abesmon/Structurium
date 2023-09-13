@@ -213,6 +213,58 @@ extension CollectionViewDriver: UIScrollViewDelegate {
         calculatePinned(scrollView)
     }
 
+    public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewDidZoom?(scrollView)
+    }
+
+    public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewWillBeginDragging?(scrollView)
+    }
+
+    public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        scrollViewNextDelegate?.scrollViewWillEndDragging?(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
+    }
+
+    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        scrollViewNextDelegate?.scrollViewDidEndDragging?(scrollView, willDecelerate: decelerate)
+    }
+
+    public func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewWillBeginDecelerating?(scrollView)
+    }
+
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewDidEndDecelerating?(scrollView)
+    }
+
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewDidEndScrollingAnimation?(scrollView)
+    }
+
+    public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        scrollViewNextDelegate?.viewForZooming?(in: scrollView)
+    }
+
+    public func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
+        scrollViewNextDelegate?.scrollViewWillBeginZooming?(scrollView, with: view)
+    }
+
+    public func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+        scrollViewNextDelegate?.scrollViewDidEndZooming?(scrollView, with: view, atScale: scale)
+    }
+
+    public func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
+        scrollViewNextDelegate?.scrollViewShouldScrollToTop?(scrollView) ?? true
+    }
+
+    public func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewDidScrollToTop?(scrollView)
+    }
+
+    public func scrollViewDidChangeAdjustedContentInset(_ scrollView: UIScrollView) {
+        scrollViewNextDelegate?.scrollViewDidChangeAdjustedContentInset?(scrollView)
+    }
+
     private func calculatePinned(_ scrollView: UIScrollView) {
         let minimalContentOffset: CGFloat = 5
         let diffRangeToPin = CGFloat(-3)...CGFloat(3)
